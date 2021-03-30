@@ -24,14 +24,14 @@ defmodule Graphitex.Client do
   end
 
   @spec metric({number, binary|String.t, Float.t}) :: nil
-  def metric(measurement), do: send({:metric, pack_msg(measurement)})
+  def metric(measurement), do: send(pack_msg(measurement))
 
   @spec metric_batch([{number, binary|String.t, Float.t}]) :: nil
   def metric_batch(batch) do
     bulk_mgs = batch
     |> Enum.map(&pack_msg/1)
     |> Enum.join("")
-    send({:metric, bulk_mgs})
+    send({bulk_mgs})
   end
 
   #
