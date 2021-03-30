@@ -31,7 +31,7 @@ defmodule Graphitex.Client do
     bulk_mgs = batch
     |> Enum.map(&pack_msg/1)
     |> Enum.join("")
-    send({bulk_mgs})
+    send(bulk_mgs)
   end
 
   #
