@@ -28,10 +28,9 @@ defmodule Graphitex.Client do
 
   @spec metric_batch([{number, binary|String.t, Float.t}]) :: nil
   def metric_batch(batch) do
-    bulk_mgs = batch
+    batch
     |> Enum.map(&pack_msg/1)
-    |> Enum.join("")
-    send(bulk_mgs)
+    |> send()
   end
 
   #
