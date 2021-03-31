@@ -85,19 +85,19 @@ defmodule Graphitex.Client do
     host = Application.get_env(:graphitex, :host)
     Logger.debug(fn -> "Connecting to carbon at #{host}:#{port}" end)
 
-    case connect() do
-      {:ok, socket} ->
-        :ok = :gen_tcp.send(socket, msg)
-        {:noreply, %{state | socket: socket}}
-
-      _ ->
-        {:noreply, state}
+    with {:ok, socket} <- connect(),
+         :ok <- :gen_tcp.send(socket, msg) do
+      {:noreply, %{state | socket: socket}}
+    else
+      _ -> {:noreply, state}
     end
   end
 
   def handle_cast({:metric, msg}, %{socket: socket} = state) do
-    :ok = :gen_tcp.send(socket, msg)
-    {:noreply, state}
+    case :gen_tcp.send(socket, msg) do
+      :ok -> {:noreply, state}
+      _ -> {:noreply, %{state | socket: nil}}
+    end
   end
 
   def handle_cast(error, state) do
