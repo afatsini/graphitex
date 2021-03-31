@@ -111,6 +111,6 @@ defmodule Graphitex.Client do
     opts = [:binary, active: false]
     Logger.debug(fn -> "Connecting to carbon at #{host}:#{port}" end)
 
-    :ok = :gen_tcp.connect(host, port, opts)
+    :gen_tcp.connect(host, port, opts)
   end
 end
