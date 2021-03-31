@@ -72,16 +72,6 @@ defmodule Graphitex.Client do
     {:ok, state}
   end
 
-  def connect(state) do
-    port = Application.get_env(:graphitex, :port, 2003)
-    host = Application.get_env(:graphitex, :host)
-    opts = [:binary, active: false]
-    Logger.info(fn -> "Connecting to carbon at #{host}:#{port}" end)
-    {:ok, socket} = :gen_tcp.connect(host, port, opts)
-    Logger.info("Connected")
-    %{state | socket: socket}
-  end
-
   def terminate({:error, :closed}, state), do: state
 
   def terminate(_reason, %{socket: socket} = state) when not is_nil(socket) do
@@ -96,14 +86,23 @@ defmodule Graphitex.Client do
     opts = [:binary, active: false]
     Logger.debug(fn -> "Connecting to carbon at #{host}:#{port}" end)
 
-    case :gen_tcp.connect(host, port, opts) do
+    case connect() do
       {:ok, socket} ->
-        connected_state = connect(state)
-        handle_cast(msg, connected_state)
+        :ok = :gen_tcp.send(socket, msg)
+        {:noreply, %{state | socket: socket}}
 
       _ ->
         {:noreply, state}
     end
+  end
+
+  defp connect do
+    port = Application.get_env(:graphitex, :port, 2003)
+    host = Application.get_env(:graphitex, :host)
+    opts = [:binary, active: false]
+    Logger.debug(fn -> "Connecting to carbon at #{host}:#{port}" end)
+
+    :gen_tcp.connect(host, port, opts)
   end
 
   def handle_cast({:metric, msg}, %{socket: socket} = state) do
