@@ -100,6 +100,11 @@ defmodule Graphitex.Client do
     {:noreply, state}
   end
 
+  def handle_cast(error, state) do
+    Logger.debug(fn -> "Unexpected cast metric message #{inspect(error)}. Resetting socket" end)
+    {:noreply, %{state | socket: nil}}
+  end
+
   defp connect do
     port = Application.get_env(:graphitex, :port, 2003)
     host = Application.get_env(:graphitex, :host)
