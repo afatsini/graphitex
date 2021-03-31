@@ -16,7 +16,8 @@ defmodule GraphitexTest do
       {2, "client.transactions.west"},
       {5, "client.transactions.north"}
     ]
-    assert :ok ==  Graphitex.metric_batch(batch)
+
+    assert :ok == Graphitex.metric_batch(batch)
   end
 
   test "stream batch" do
