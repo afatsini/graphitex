@@ -88,7 +88,7 @@ defmodule Graphitex.Client do
 
     case connect() do
       {:ok, socket} ->
-        :ok = :gen_tcp.send(socket, msg)
+        :gen_tcp.send(socket, msg)
         {:noreply, %{state | socket: socket}}
 
       _ ->
