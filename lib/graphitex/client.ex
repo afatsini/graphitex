@@ -6,10 +6,12 @@ defmodule Graphitex.Client do
   use GenServer
   require Logger
 
-  @name __MODULE__
+  alias __MODULE__, as: State
 
-  def start_link do
-    GenServer.start_link(__MODULE__, %{socket: nil}, name: @name)
+  defstruct [:socket, :host, :port]
+
+  def start_link(_opts) do
+    GenServer.start_link(__MODULE__, %State{socket: nil}, name: __MODULE__)
   end
 
   @doc """
@@ -32,7 +34,7 @@ defmodule Graphitex.Client do
 
   @spec metric({number, binary | String.t()} | {number, binary | String.t(), Float.t()}) :: :ok
   def metric(measurement) do
-    GenServer.cast(@name, {:metric, pack_msg(measurement)})
+    GenServer.cast(__MODULE__, {:metric, pack_msg(measurement)})
   end
 
   @spec metric_batch([{number, binary | String.t(), Float.t()}]) :: :ok
@@ -42,7 +44,7 @@ defmodule Graphitex.Client do
       |> Enum.map(&pack_msg/1)
       |> Enum.join("")
 
-    GenServer.cast(@name, {:metric, bulk_mgs})
+    GenServer.cast(__MODULE__, {:metric, bulk_mgs})
   end
 
   #
@@ -76,15 +78,17 @@ defmodule Graphitex.Client do
     port = Application.get_env(:graphitex, :port, 2003)
     host = Application.get_env(:graphitex, :host)
     opts = [:binary, active: false]
-    Logger.info(fn -> "Connecting to carbon at #{host}:#{port}" end)
+    Logger.debug(fn -> "Connecting to carbon at #{host}:#{port}" end)
     {:ok, socket} = :gen_udp.open(0, opts)
-    Logger.info("Connected")
-    %{state | socket: socket, host: host, port: port}
+    Logger.debug("Connected")
+    %State{state | socket: socket, host: host, port: port}
   end
 
-  def terminate(_reason, %{socket: socket} = state) when not is_nil(socket) do
+  def terminate(_reason, %{socket: socket}) when not is_nil(socket) do
     :gen_udp.close(socket)
   end
+
+  def terminate(_reason, _state), do: :ok
 
   def handle_cast(msg, %{socket: nil} = state) do
     connected_state = connect(state)

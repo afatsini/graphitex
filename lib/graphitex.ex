@@ -8,9 +8,7 @@ defmodule Graphitex do
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
-    children = [
-      worker(Graphitex.Client, []),
-    ]
+    children = [{Graphitex.Client, []}]
 
     opts = [strategy: :one_for_one, name: Graphitex.Supervisor]
     Supervisor.start_link(children, opts)
